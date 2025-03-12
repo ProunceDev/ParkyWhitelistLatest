@@ -1,0 +1,10 @@
+name: ParkyWhitelistLatest
+version: '1.0-BETA'
+main: org.ProunceDev.parkyWhitelistLatest.ParkyWhitelistLatest
+api-version: '1.21'
+commands:
+  whitelist:
+    description: Adds or removes players from the whitelist
+    usage: /whitelist <add|remove|file> <player|file>
+    permission: parkywhitelist.manage
+    permission-message: You do not have permission to use this command.
