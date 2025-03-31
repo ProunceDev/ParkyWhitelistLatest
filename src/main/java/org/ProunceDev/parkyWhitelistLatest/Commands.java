@@ -29,11 +29,8 @@ public class Commands implements CommandExecutor, TabCompleter {
                     return true;
                 }
 
-                String discordId = "N/A"; // Placeholder for actual Discord ID
-                String discordUsername = "N/A"; // Placeholder for actual Discord username
-                String[] user = WhitelistHandler.createUser(discordId, discordUsername, playerUUID, playerName);
                 if (action.equalsIgnoreCase("add")) {
-                    if (WhitelistHandler.addUser(user)) {
+                    if (WhitelistHandler.addUser(playerUUID)) {
                         commandSender.sendMessage(playerName + " has been added to the whitelist.");
                     } else {
                         commandSender.sendMessage(playerName + " is already whitelisted.");
@@ -52,27 +49,17 @@ public class Commands implements CommandExecutor, TabCompleter {
                     commandSender.sendMessage("Invalid filename! Use 'staff.whitelist' or 'event.whitelist'");
                 } else {
                     WhitelistHandler.FILENAME = filename.toLowerCase();
-                    for (org.bukkit.entity.Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
-                        String uuid = player.getUniqueId().toString().replace("-", "");
 
-                        if (WhitelistHandler.FILENAME.equals("event.whitelist")) {
-                            List<String[]> eventUsers = WhitelistHandler.loadUsers();
-                            WhitelistHandler.FILENAME = "staff.whitelist";
-                            List<String[]> staffUsers = WhitelistHandler.loadUsers();
-                            WhitelistHandler.FILENAME = "event.whitelist";
-                            boolean isWhitelisted = eventUsers.stream().anyMatch(user -> user[2].equals(uuid)) || staffUsers.stream().anyMatch(user -> user[2].equals(uuid));
+                    if (WhitelistHandler.FILENAME.equals("staff.whitelist")) {
+
+                        for (org.bukkit.entity.Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+                            String uuid = player.getUniqueId().toString().replace("-", "");
+
+                            boolean isWhitelisted = WhitelistHandler.checkWhitelisted(uuid);
 
                             if (!isWhitelisted) {
-                                player.kick(Component.text("You are not whitelisted!"));
+                                player.kick(Component.text("You are not staff whitelisted!"));
                             }
-
-                        }
-
-                        List<String[]> users = WhitelistHandler.loadUsers();
-                        boolean isWhitelisted = users.stream().anyMatch(user -> user[2].equals(uuid));
-
-                        if (!isWhitelisted) {
-                            player.kick(Component.text("You are not staff whitelisted!"));
                         }
                     }
                     commandSender.sendMessage("Active whitelist has been set to " + filename.toLowerCase());
@@ -84,6 +71,7 @@ public class Commands implements CommandExecutor, TabCompleter {
         }
         return false;
     }
+
 
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {

@@ -7,7 +7,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.List;
 import java.util.Objects;
 
 public class ParkyWhitelistLatest extends JavaPlugin implements Listener {
@@ -24,21 +23,25 @@ public class ParkyWhitelistLatest extends JavaPlugin implements Listener {
         String uuid = event.getUniqueId().toString().replace("-", "");
 
         if (WhitelistHandler.FILENAME.equals("event.whitelist")) {
-            List<String[]> eventUsers = WhitelistHandler.loadUsers();
-            WhitelistHandler.FILENAME = "staff.whitelist";
-            List<String[]> staffUsers = WhitelistHandler.loadUsers();
-            WhitelistHandler.FILENAME = "event.whitelist";
-            boolean isWhitelisted = eventUsers.stream().anyMatch(user -> user[2].equals(uuid)) || staffUsers.stream().anyMatch(user -> user[2].equals(uuid));
+            boolean isWhitelisted = WhitelistHandler.checkWhitelisted(uuid);
 
-            if (!isWhitelisted) {
-                event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST, Component.text("You are not whitelisted!"));
+            if (!isWhitelisted) { // Check staff whitelist as fallback
+                WhitelistHandler.FILENAME = "staff.whitelist";
+                isWhitelisted = WhitelistHandler.checkWhitelisted(uuid);
+
+                if (!isWhitelisted) {
+                    event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST, Component.text("You are not whitelisted!"));
+                }
+
+                WhitelistHandler.FILENAME = "event.whitelist";
             }
 
             return;
         }
 
-        List<String[]> users = WhitelistHandler.loadUsers();
-        boolean isWhitelisted = users.stream().anyMatch(user -> user[2].equals(uuid));
+
+        WhitelistHandler.FILENAME = "staff.whitelist";
+        boolean isWhitelisted = WhitelistHandler.checkWhitelisted(uuid);
 
         if (!isWhitelisted) {
             event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST, Component.text("You are not staff whitelisted!"));

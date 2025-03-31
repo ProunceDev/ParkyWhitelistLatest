@@ -1,86 +1,86 @@
 package org.ProunceDev.parkyWhitelistLatest;
 
-import org.bukkit.Bukkit;
-
 import java.io.*;
-import java.util.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 public class WhitelistHandler {
-    private static final String HEADER = "[Discord ID                              |Discord Username                        |Minecraft UUID                          |Minecraft Username                      ]\n"
-            + "[----------------------------------------|----------------------------------------|----------------------------------------|----------------------------------------]\n";
+    private static final String API_URL = "http://172.18.0.4:5000/whitelist";
     public static String FILENAME = "staff.whitelist";
 
-    public static List<String[]> loadUsers() {
-        List<String[]> users = new ArrayList<>();
+    public static boolean addUser(String uuid) {
+        try {
+            URL url = new URL(API_URL + "/add");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json");
 
-        // Check if the file exists, if not create it and write the header
-        File file = new File(FILENAME);
-        if (!file.exists()) {
-            Bukkit.getLogger().info("[ParkyWhitelist] " + FILENAME + " doesn't exist, creating it...");
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                writer.write(HEADER); // Write the header to the file
-            } catch (IOException e) {
-                Bukkit.getLogger().info("[ParkyWhitelist] Failed to create file " + FILENAME);
+            String jsonInputString = "{\"uuid\": \"" + uuid + "\", \"filename\": \"" + FILENAME + "\"}";
+
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
             }
-        }
 
-        // Read the file content
-        try (BufferedReader reader = new BufferedReader(new FileReader(FILENAME))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("[") || !line.contains("|")) continue;
-
-                String[] parts = Arrays.stream(line.split("\\|"))
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .toArray(String[]::new);
-
-                if (parts.length == 4) {
-                    users.add(parts);
-                }
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                return true;
+            } else {
+                return false;
             }
+
         } catch (IOException e) {
-            Bukkit.getLogger().info("[ParkyWhitelist] Failed to read from file " + FILENAME);
+            e.printStackTrace();
+            return false;
         }
-
-        return users;
     }
 
+    public static boolean removeUser(String uuid) {
+        try {
+            URL url = new URL(API_URL + "/remove");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json");
 
-    public static void saveUsers(List<String[]> users) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILENAME))) {
-            writer.write(HEADER);
-            for (String[] user : users) {
-                writer.write(String.format("|%-40s|%-40s|%-40s|%-40s|\n",
-                        user[0], user[1], user[2].replace("-", ""), user[3]));
+            String jsonInputString = "{\"uuid\": \"" + uuid + "\", \"filename\": \"" + FILENAME + "\"}";
+
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
             }
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                return true;
+            } else {
+                return false;
+            }
+
         } catch (IOException e) {
-            Bukkit.getLogger().info("[ParkyWhitelist] Failed to write to file " + FILENAME);
+            e.printStackTrace();
+            return false;
         }
     }
 
-    public static boolean addUser(String[] newUser) {
-        List<String[]> users = loadUsers();
-        for (String[] user : users) {
-            if (user[2].replace("-", "").equals(newUser[2].replace("-", ""))) {
-                return false; // UUID already exists
+    public static boolean checkWhitelisted(String uuid) {
+        try {
+            URL url = new URL(API_URL + "/check?uuid=" + uuid + "&filename=" + FILENAME);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                return true;
+            } else {
+                return false;
             }
-        }
-        users.add(newUser);
-        saveUsers(users);
-        return true;
-    }
 
-    public static boolean removeUser(String minecraftUuid) {
-        List<String[]> users = loadUsers();
-        boolean removed = users.removeIf(user -> user[2].equals(minecraftUuid.replace("-", "")));
-        if (removed) {
-            saveUsers(users);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
         }
-        return removed;
-    }
-
-    public static String[] createUser(String discordId, String discordUsername, String minecraftUuid, String minecraftUsername) {
-        return new String[]{discordId, discordUsername, minecraftUuid.replace("-", ""), minecraftUsername};
     }
 }
