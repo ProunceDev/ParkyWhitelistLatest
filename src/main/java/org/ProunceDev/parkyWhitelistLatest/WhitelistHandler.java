@@ -6,7 +6,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public class WhitelistHandler {
-    private static final String API_URL = "http://172.18.0.4:5000/whitelist";
+    private static final String API_URL = "http://38.147.104.84:5000/whitelist";
     public static String FILENAME = "staff.whitelist";
 
     public static boolean addUser(String uuid) {

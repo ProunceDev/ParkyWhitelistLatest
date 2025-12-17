@@ -1,5 +1,5 @@
 name: ParkyWhitelistLatest
-version: '1.1-BETA'
+version: '1.2'
 main: org.ProunceDev.parkyWhitelistLatest.ParkyWhitelistLatest
 api-version: '1.21'
 commands:

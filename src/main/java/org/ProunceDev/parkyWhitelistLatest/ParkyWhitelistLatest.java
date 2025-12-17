@@ -6,6 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.Objects;
 
@@ -30,7 +31,10 @@ public class ParkyWhitelistLatest extends JavaPlugin implements Listener {
                 isWhitelisted = WhitelistHandler.checkWhitelisted(uuid);
 
                 if (!isWhitelisted) {
-                    event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST, Component.text("You are not whitelisted!"));
+                    event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST, Component.text("You are not whitelisted in this event.", NamedTextColor.RED)
+                            .append(Component.text("\n If you think you should be, go to the discord server\n and type ", NamedTextColor.AQUA))
+                            .append(Component.text("!whitelist <yourIGN>", NamedTextColor.YELLOW))
+                            .append(Component.text(" in #event-whitelist.", NamedTextColor.AQUA)));
                 }
 
                 WhitelistHandler.FILENAME = "event.whitelist";
@@ -44,7 +48,10 @@ public class ParkyWhitelistLatest extends JavaPlugin implements Listener {
         boolean isWhitelisted = WhitelistHandler.checkWhitelisted(uuid);
 
         if (!isWhitelisted) {
-            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST, Component.text("You are not staff whitelisted!"));
+            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST, Component.text("You are not ", NamedTextColor.RED)
+                    .append(Component.text("staff", NamedTextColor.BLUE))
+                    .append(Component.text(" whitelisted.", NamedTextColor.RED))
+                    .append(Component.text("\n If you are seeing this, it means the event hasn't started yet.", NamedTextColor.AQUA)));
         }
     }
 }
